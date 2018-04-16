@@ -1,17 +1,20 @@
 package net.suncheol.workalendar;
 
 
+import net.suncheol.workalendar.util.Easter;
+
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-abstract class WorkCalendar {
+abstract class Workalendar {
     private final Calendar calendar;
-    private final Map<Integer, Set> holidays;
+    private final Map<Integer, Set<LocalDate>> holidays;
 
-    public WorkCalendar() {
+    public Workalendar() {
         this.calendar = Calendar.getInstance();
         this.holidays = new HashMap<>();
     }
@@ -22,16 +25,16 @@ abstract class WorkCalendar {
      * You must override this method for each calendar.\
      *
      * @param year
-     * @return Set
+     * @return Set<LocalDate>
      */
-    public abstract Set getCalendarHolidays(int year);
+    public abstract Set<LocalDate> getCalendarHolidays(int year);
 
     /**
      * Computes holidays (non-working days) for a given year
      *
-     * @return
+     * @return Set<LocalDate>
      */
-    public Set holidays() {
+    public Set<LocalDate> holidays() {
         return holidays(calendar.get(Calendar.YEAR));
     }
 
@@ -39,9 +42,9 @@ abstract class WorkCalendar {
      * Computes holidays (non-working days) for a given year
      *
      * @param year
-     * @return
+     * @return Set<LocalDate>
      */
-    private Set holidays(int year) {
+    private Set<LocalDate> holidays(int year) {
         if (this.holidays.containsKey(year)) {
             return holidays.get(year);
         }
@@ -51,12 +54,15 @@ abstract class WorkCalendar {
         return this.holidays.get(year);
     }
 
+
     /**
-     * Return a list (or a tuple) of weekdays that are *not* workdays.
+     * Return a list of weekdays that are *not* workdays.
      *
      * e.g: return (SAT, SUN,)
+     *
+     * @return Set<LocalDate>
      */
-    void get_weekend_days() {
+    public Set<LocalDate> getWeekendDays() {
         throw new UnsupportedOperationException("Your Calendar class must implement the `get_weekend_days` method");
     }
 
@@ -65,10 +71,16 @@ abstract class WorkCalendar {
      * Return True if it's a workday.
      *
      * @param day
-     * @return
+     * @return boolean
      */
     public boolean isWorkday(LocalDate day) {
-        throw new UnsupportedOperationException();
+        if (this.getWeekendDays().contains(day))
+            return false;
+
+        if (this.holidays(day.getYear()).contains(day))
+            return false;
+
+        return true;
     }
 
     /**
@@ -76,31 +88,44 @@ abstract class WorkCalendar {
      *
      * @param day
      * @param delta
-     * @return
+     * @return LocalDate
      */
     public LocalDate addWorkdays(LocalDate day, int delta) {
-        throw new UnsupportedOperationException();
+        int days = 0;
+        LocalDate tempDay = day;
+
+        while (days < delta) {
+            tempDay = tempDay.plusDays(1);
+            if (this.isWorkday(tempDay)) {
+                days += 1;
+            }
+        }
+
+        return tempDay;
     }
 
     /**
      * Return the date of the easter (sunday) -- following the easter method
+     * Easter Sunday = 부활절 일요일
      *
      * @param year
      * @return LocalDate
      */
     public LocalDate getEasterSunday(int year) {
-        throw new UnsupportedOperationException();
+        return Easter.sundayFor(Year.of(year));
     }
 
 
     /**
      * Return the date of the monday after easter
+     * Easter Monday = 부활절 다음 날 월요일
      *
      * @param year
      * @return LocalDate
      */
     public LocalDate getEasterMonday(int year) {
-        throw new UnsupportedOperationException();
+        LocalDate easterSunday = getEasterSunday(year);
+        return easterSunday.plusDays(1);
     }
 
 
@@ -123,7 +148,22 @@ abstract class WorkCalendar {
         return getNthWeekdayInMonth(year, month, weekday, 1);
     }
 
-    private static LocalDate getNthWeekdayInMonth(int year, int month, int weekday, int n) {
-        throw new UnsupportedOperationException();
+    public static LocalDate getNthWeekdayInMonth(int year, int month, int weekday, int n) {
+        LocalDate day = LocalDate.of(year, month, 1);
+        int counter = 0;
+        while(true) {
+            if (day.getMonth().getValue() != month)
+                return null;
+
+            if (day.getDayOfWeek().getValue() == weekday)
+                counter += 1;
+
+            if (counter == n)
+                break;
+
+            day = day.plusDays(1);
+        }
+
+        return day;
     }
 }
