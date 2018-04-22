@@ -1,10 +1,11 @@
-package net.suncheol.workalendar;
+package workalendar.core;
 
+import workalendar.util.Easter;
 
-import net.suncheol.workalendar.util.Easter;
-
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Year;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,7 @@ abstract class Workalendar {
      * @param year
      * @return Set<LocalDate>
      */
-    private Set<LocalDate> holidays(int year) {
+    public Set<LocalDate> holidays(int year) {
         if (this.holidays.containsKey(year)) {
             return holidays.get(year);
         }
@@ -57,12 +58,12 @@ abstract class Workalendar {
 
     /**
      * Return a list of weekdays that are *not* workdays.
-     *
+     * <p>
      * e.g: return (SAT, SUN,)
      *
      * @return Set<LocalDate>
      */
-    public Set<LocalDate> getWeekendDays() {
+    public Set getWeekendDays() {
         throw new UnsupportedOperationException("Your Calendar class must implement the `get_weekend_days` method");
     }
 
@@ -131,7 +132,7 @@ abstract class Workalendar {
 
     /**
      * Get the nth weekday in a given month. e.g:
-     *
+     * <p>
      * >>> # the 1st monday in Jan 2013
      * >>> Calendar.get_nth_weekday_in_month(2013, 1, MON)
      * datetime.date(2013, 1, 7)
@@ -141,27 +142,50 @@ abstract class Workalendar {
      *
      * @param year
      * @param month
-     * @param weekday
+     * @param dayOfWeek
      * @return LocalDate
      */
-    public static  LocalDate getNthWeekdayInMonth(int year, int month, int weekday) {
-        return getNthWeekdayInMonth(year, month, weekday, 1);
+    public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
+        return getNthWeekdayInMonth(year, month, dayOfWeek, 1);
     }
 
-    public static LocalDate getNthWeekdayInMonth(int year, int month, int weekday, int n) {
+    public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n) {
         LocalDate day = LocalDate.of(year, month, 1);
         int counter = 0;
-        while(true) {
+        while (true) {
             if (day.getMonth().getValue() != month)
                 return null;
 
-            if (day.getDayOfWeek().getValue() == weekday)
+            if (day.getDayOfWeek() == dayOfWeek)
                 counter += 1;
 
             if (counter == n)
                 break;
 
             day = day.plusDays(1);
+        }
+
+        return day;
+    }
+
+    /**
+     * Get the last weekday in a given month. e.g:
+     * <p>
+     * >>> # the last monday in Jan 2013
+     * >>> Calendar.get_last_weekday_in_month(2013, 1, MON)
+     * datetime.date(2013, 1, 28)
+     *
+     * @param year
+     * @param month
+     */
+    public static LocalDate getLastWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
+        LocalDate day = LocalDate.of(year, month, 1).with(TemporalAdjusters.lastDayOfMonth());
+
+        while (true) {
+            if (day.getDayOfWeek() == dayOfWeek)
+                break;
+
+            day = day.minusDays(1);
         }
 
         return day;

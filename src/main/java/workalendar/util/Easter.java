@@ -1,4 +1,4 @@
-package net.suncheol.workalendar.util;
+package workalendar.util;
 
 import java.time.LocalDate;
 import java.time.Year;
