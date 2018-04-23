@@ -12,7 +12,7 @@ import static java.time.DayOfWeek.SUNDAY;
 /**
  * General usage calendar for Western countries.
  * <p>
- * (chiefly Europe and Northern UnitedStatesCalendar)
+ * (chiefly Europe and Northern UnitedStates)
  */
 public class WesternCalendar extends Workalendar {
     private final Set<DayOfWeek> WEEK_END_WEEKDAYS;

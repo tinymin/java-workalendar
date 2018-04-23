@@ -11,8 +11,8 @@ import static java.time.DayOfWeek.*;
 /**
  * USA Calendar
  */
-public class UnitedStatesCalendar extends WesternCalendar {
-    public UnitedStatesCalendar() {
+public class UnitedStates extends WesternCalendar {
+    public UnitedStates() {
         super();
     }
 
@@ -35,7 +35,7 @@ public class UnitedStatesCalendar extends WesternCalendar {
         days.add(WesternCalendar.getNthWeekdayInMonth(year, 11, THURSDAY, 4));
 
         // Inauguration day
-        if (UnitedStatesCalendar.isPresidentialYear(year - 1)) {
+        if (UnitedStates.isPresidentialYear(year - 1)) {
             LocalDate inaugurationDay = LocalDate.of(year, 1, 20);
 
             if (inaugurationDay.getDayOfWeek() == SUNDAY) {
