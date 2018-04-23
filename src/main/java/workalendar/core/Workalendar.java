@@ -75,7 +75,7 @@ abstract class Workalendar {
      * @return boolean
      */
     public boolean isWorkday(LocalDate day) {
-        if (this.getWeekendDays().contains(day))
+        if (this.getWeekendDays().contains(day.getDayOfWeek()))
             return false;
 
         if (this.holidays(day.getYear()).contains(day))

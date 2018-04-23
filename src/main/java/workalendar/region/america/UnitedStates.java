@@ -1,4 +1,4 @@
-package workalendar.region;
+package workalendar.region.america;
 
 import workalendar.core.WesternCalendar;
 
