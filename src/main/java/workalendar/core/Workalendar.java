@@ -1,103 +1,213 @@
 package workalendar.core;
 
-import workalendar.util.Easter;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.Year;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.time.LocalDate.now;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toMap;
 
 abstract class Workalendar {
-    private final Calendar calendar;
-    private final Map<Integer, Set<LocalDate>> holidays;
+    private final Map<Integer, SortedSet<Day>> holidays;
+
+    protected SortedSet<FixedDay> FIXED_HOLIDAYS;
+    protected List<DayOfWeek> WEEKEND_DAYS;
+
 
     public Workalendar() {
-        this.calendar = Calendar.getInstance();
         this.holidays = new HashMap<>();
+        this.FIXED_HOLIDAYS =  new TreeSet<>();
+        this.WEEKEND_DAYS =  new ArrayList<>();
     }
+
+    /**
+     * Return the fixed days according to the FIXED_HOLIDAYS class property
+     */
+    public SortedSet<Day> getFixedHolidays(int year) {
+        SortedSet<Day> days =  new TreeSet<>();
+
+        for (FixedDay fixedDay: this.FIXED_HOLIDAYS) {
+            days.add(fixedDay.toDay(year));
+        }
+
+        return days;
+    }
+
+    public abstract SortedSet<Day> getVariableDays(int year);
 
     /**
      * Get calendar holidays.
-     * This method **must** return a set or a list.
-     * You must override this method for each calendar.\
+     * If you want to override this, please make sure that it **must** return
+     * a list of Days.
      *
      * @param year
      * @return Set<LocalDate>
      */
-    public abstract Set<LocalDate> getCalendarHolidays(int year);
-
-    /**
-     * Computes holidays (non-working days) for a given year
-     *
-     * @return Set<LocalDate>
-     */
-    public Set<LocalDate> holidays() {
-        return holidays(calendar.get(Calendar.YEAR));
+    public SortedSet<Day> getCalendarHolidays(int year) {
+        SortedSet<Day> hd = this.getFixedHolidays(year);
+        hd.addAll(this.getVariableDays(year));
+        return hd;
     }
 
     /**
-     * Computes holidays (non-working days) for a given year
+     * Computes holidays (non-working days) for a given year.
+     * Return a 2-item tuple, composed of the date and a label.
+     *
+     * @return Set<LocalDate>
+     */
+    public SortedSet<Day> holidays() {
+        return holidays(now().getYear());
+    }
+
+    /**
+     * Computes holidays (non-working days) for a given year.
+     * Return a 2-item tuple, composed of the date and a label.
      *
      * @param year
      * @return Set<LocalDate>
      */
-    public Set<LocalDate> holidays(int year) {
+    public SortedSet<Day> holidays(int year) {
         if (this.holidays.containsKey(year)) {
             return holidays.get(year);
         }
 
-        holidays.put(year, getCalendarHolidays(year));
+        // it is sorted
+        holidays.put(year, this.getCalendarHolidays(year));
 
         return this.holidays.get(year);
     }
 
 
     /**
-     * Return a list of weekdays that are *not* workdays.
-     * <p>
-     * e.g: return (SAT, SUN,)
+     * Return the label of the holiday, if the date is a holiday
      *
-     * @return Set<LocalDate>
+     * @param day
+     * @return String Holiday label
      */
-    public Set getWeekendDays() {
-        throw new UnsupportedOperationException("Your Calendar class must implement the `get_weekend_days` method");
+    public String getHolidayLabel(LocalDate day) {
+        Map<LocalDate, String> h = this.holidays(day.getYear()).stream()
+                .collect(toMap(k -> k.getLocalDate(), v -> v.getLabel()));
+
+        return h.get(day);
     }
 
 
     /**
-     * Return True if it's a workday.
+     * Return a quick date index (set)
+     *
+     * @return Set<LocalDate>
+     */
+    public Set<LocalDate> holidaysSet() {
+        return holidaysSet(now().getYear());
+    }
+
+    public Set<LocalDate> holidaysSet(int year) {
+        return this.holidays(year).stream()
+                .map(Day::getLocalDate)
+                .collect(toCollection(HashSet::new));
+    }
+
+
+    /**
+     * Return a list (or a tuple) of weekdays that are *not* working days.
+     * e.g: return (SAT, SUN,)
+     *
+     * @return List<DayOfWeek>
+     */
+    public List<DayOfWeek> getWeekendDays() {
+        if (false == this.WEEKEND_DAYS.isEmpty())
+            return this.WEEKEND_DAYS;
+
+        throw new UnsupportedOperationException("Your Calendar class must provide" +
+                                                "WEEKEND_DAYS or implement the" +
+                                                "`get_weekend_days` method");
+    }
+
+
+    /**
+     * Return True if it's a working day.
+     * In addition to the regular holidays, you can add exceptions.
+     *
+     * By providing ``extra_working_days``, you'll state that these dates
+     * **are** working days.
+     *
+     * By providing ``extra_holidays``, you'll state that these dates **are**
+     * holidays, even if not in the regular calendar holidays (or weekends).
+     *
+     * Please note that the ``extra_working_days`` list has priority over the
+     * ``extra_holidays`` list.
      *
      * @param day
      * @return boolean
      */
-    public boolean isWorkday(LocalDate day) {
+    public boolean isWorkingDay(LocalDate day) {
+        return isWorkingDay(day, null, null);
+    }
+
+    public boolean isWorkingDay(LocalDate day, List extraWorkingDays, List extraHolidays) {
+        // Extra lists exceptions
+        if (null != extraWorkingDays && extraWorkingDays.contains(day))
+            return true;
+
+        // Regular rules
         if (this.getWeekendDays().contains(day.getDayOfWeek()))
             return false;
 
-        if (this.holidays(day.getYear()).contains(day))
-            return false;
-
-        return true;
+        return !(isHoliday(day, extraHolidays));
     }
 
+
     /**
-     * Add `delta` workdays to the date.
+     * Return True if it's an holiday.
+     * In addition to the regular holidays, you can add exceptions.
+     *
+     * By providing ``extra_holidays``, you'll state that these dates **are**
+     * holidays, even if not in the regular calendar holidays (or weekends).
+     *
+     * @param day
+     * @param extraHolidays
+     * @return boolean
+     */
+    private boolean isHoliday(LocalDate day, List extraHolidays) {
+        if (null != extraHolidays && extraHolidays.contains(day))
+            return true;
+
+        return this.holidaysSet(day.getYear()).contains(day);
+    }
+
+
+    /**
+     * Add `delta` working days to the date.
+     *
+     * the ``delta`` parameter might be positive or negative. If it's
+     * negative, you may want to use the ``sub_working_days()`` method with
+     * a positive ``delta`` argument.
+     *
+     * By providing ``extra_working_days``, you'll state that these dates
+     * **are** working days.
+     *
+     * By providing ``extra_holidays``, you'll state that these dates **are**
+     * holidays, even if not in the regular calendar holidays (or weekends).
+     *
+     * Please note that the ``extra_working_days`` list has priority over the
+     * ``extra_holidays`` list.
      *
      * @param day
      * @param delta
-     * @return LocalDate
      */
-    public LocalDate addWorkdays(LocalDate day, int delta) {
+    public LocalDate addWorkingDays(LocalDate day, int delta) {
+        return addWorkingDays(day, delta, null, null);
+    }
+
+    public LocalDate addWorkingDays(LocalDate day, int delta, List extraWorkingDays, List extraHolidays) {
         int days = 0;
         LocalDate tempDay = day;
-
+        int dayAdded = delta >= 0 ? 1 : -1;
         while (days < delta) {
-            tempDay = tempDay.plusDays(1);
-            if (this.isWorkday(tempDay)) {
+            tempDay = tempDay.plusDays(dayAdded);
+            if (this.isWorkingDay(tempDay, extraWorkingDays, extraHolidays)) {
                 days += 1;
             }
         }
@@ -105,28 +215,49 @@ abstract class Workalendar {
         return tempDay;
     }
 
+
     /**
-     * Return the date of the easter (sunday) -- following the easter method
-     * Easter Sunday = 부활절 일요일
+     * Substract `delta` working days to the date.
      *
-     * @param year
+     * This method is a shortcut / helper. Users may want to use either::
+     *
+     * cal.add_working_days(my_date, -7)
+     * cal.sub_working_days(my_date, 7)
+     *
+     * The other parameters are to be used exactly as in the
+     * ``add_working_days`` method.
+     *
+     * A negative ``delta`` argument will be converted into its absolute
+     * value. Hence, the two following calls are equivalent::
+     *
+     * cal.sub_working_days(my_date, -7)
+     * cal.sub_working_days(my_date, 7)
+     *
+     * @param day
+     * @param delta
      * @return LocalDate
      */
-    public LocalDate getEasterSunday(int year) {
-        return Easter.sundayFor(Year.of(year));
+    public LocalDate subWorkingDays(LocalDate day, int delta) {
+        return subWorkingDays(day, delta, null, null);
     }
 
+    public LocalDate subWorkingDays(LocalDate day, int delta, List extraWorkingDays, List extraHolidays) {
+        delta = Math.abs(delta);
+        return addWorkingDays(day, delta*-1, extraWorkingDays, extraHolidays);
+    }
 
     /**
-     * Return the date of the monday after easter
-     * Easter Monday = 부활절 다음 날 월요일
+     * Looks for the following working day
      *
-     * @param year
+     * @param day
      * @return LocalDate
      */
-    public LocalDate getEasterMonday(int year) {
-        LocalDate easterSunday = getEasterSunday(year);
-        return easterSunday.plusDays(1);
+    public LocalDate findFollowingWorkingDay(LocalDate day) {
+        while(this.getWeekendDays().contains(day.getDayOfWeek())) {
+            day = day.plusDays(1);
+        }
+
+        return day;
     }
 
 
@@ -146,11 +277,21 @@ abstract class Workalendar {
      * @return LocalDate
      */
     public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
-        return getNthWeekdayInMonth(year, month, dayOfWeek, 1);
+        return getNthWeekdayInMonth(year, month, dayOfWeek, 1, null);
     }
 
     public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n) {
-        LocalDate day = LocalDate.of(year, month, 1);
+        return getNthWeekdayInMonth(year, month, dayOfWeek, n, null);
+    }
+
+    public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n, LocalDate start) {
+        LocalDate day = null;
+
+        if(day != null)
+            day = start;
+        else
+            day = LocalDate.of(year, month, 1);
+
         int counter = 0;
         while (true) {
             if (day.getMonth().getValue() != month)
@@ -168,6 +309,7 @@ abstract class Workalendar {
         return day;
     }
 
+
     /**
      * Get the last weekday in a given month. e.g:
      * <p>
@@ -179,6 +321,7 @@ abstract class Workalendar {
      * @param month
      */
     public static LocalDate getLastWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
+        // Get last day of month
         LocalDate day = LocalDate.of(year, month, 1).with(TemporalAdjusters.lastDayOfMonth());
 
         while (true) {
@@ -189,5 +332,27 @@ abstract class Workalendar {
         }
 
         return day;
+    }
+
+
+    /**
+     * Get the first weekday after a given day. If the day is the same
+     *  weekday, the same day will be returned.
+     *
+     *  >>> # the first monday after Apr 1 2015
+     *  >>> Calendar.get_first_weekday_after(date(2015, 4, 1), 0)
+     *  datetime.date(2015, 4, 6)
+     *
+     *  >>> # the first tuesday after Apr 14 2015
+     *  >>> Calendar.get_first_weekday_after(date(2015, 4, 14), 1)
+     *  datetime.date(2015, 4, 14)
+     *
+     * @param day
+     * @param dayOfWeek
+     * @return LocalDate
+     */
+    public static LocalDate get_first_weekday_after(LocalDate day, DayOfWeek dayOfWeek) {
+        int dayDelta = (dayOfWeek.ordinal() - day.getDayOfWeek().ordinal()) % 7;
+        return day.plusDays(dayDelta);
     }
 }
