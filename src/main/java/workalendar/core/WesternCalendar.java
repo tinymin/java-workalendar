@@ -2,6 +2,7 @@ package workalendar.core;
 
 import workalendar.core.model.Day;
 import workalendar.core.model.FixedDay;
+import workalendar.util.Easter.EASTER;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -14,21 +15,32 @@ import static java.time.DayOfWeek.SUNDAY;
 // TODO WesternCalendar 컨버팅
 /**
  * General usage calendar for Western countries.
- * <p>
+ *
  * (chiefly Europe and Northern UnitedStates)
  */
 public class WesternCalendar extends Workalendar {
+    private EASTER EASTER_METHOD;
+    private boolean shiftNewYearsDay;
 
     public WesternCalendar() {
         super();
+        EASTER_METHOD = EASTER.WESTERN;
         WEEKEND_DAYS.addAll(Arrays.asList(SATURDAY, SUNDAY));
         FIXED_HOLIDAYS.add(new FixedDay(1, 1, "New Year"));
+        this.shiftNewYearsDay = false;
     }
 
 
     @Override
     public SortedSet<Day> getVariableDays(int year) {
-        return null;
+        SortedSet<Day> days = this.getVariableDays(year);
+        LocalDate newYear = LocalDate.of(year, 1, 1);
+        if (this.shiftNewYearsDay) {
+            if ( this.getWeekendDays().contains(newYear.getDayOfWeek()) ) {
+                days.add(new Day(this.findFollowingWorkingDay(newYear),"New Year shift"));
+            }
+        }
+        return days;
     }
 
     /**
