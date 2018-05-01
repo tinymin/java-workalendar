@@ -1,6 +1,7 @@
 package workalendar.core;
 
 import lombok.Setter;
+import workalendar.core.model.Day;
 import workalendar.util.Easter;
 import workalendar.util.Easter.EASTER;
 

@@ -1,5 +1,8 @@
 package workalendar.core;
 
+import workalendar.core.model.Day;
+import workalendar.core.model.FixedDay;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.SortedSet;

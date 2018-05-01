@@ -1,6 +1,6 @@
 package workalendar.region.europe;
 
-import workalendar.core.Day;
+import workalendar.core.model.Day;
 import workalendar.core.WesternCalendar;
 
 import java.time.LocalDate;

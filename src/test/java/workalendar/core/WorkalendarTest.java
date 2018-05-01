@@ -1,10 +1,9 @@
 package workalendar.core;
 
 import org.junit.Test;
+import workalendar.core.model.Day;
 
 import java.util.SortedSet;
-
-import static org.junit.Assert.*;
 
 public class WorkalendarTest {
     Workalendar workalendar = new Workalendar() {

@@ -1,7 +1,7 @@
 package net.suncheol.workalendar.region;
 
 import org.junit.Test;
-import workalendar.core.Day;
+import workalendar.core.model.Day;
 import workalendar.region.usa.UnitedStates;
 
 import java.time.LocalDate;

@@ -1,7 +1,7 @@
 package workalendar.region.usa;
 
-import workalendar.core.Day;
-import workalendar.core.FixedDay;
+import workalendar.core.model.Day;
+import workalendar.core.model.FixedDay;
 import workalendar.core.WesternCalendar;
 
 import java.time.LocalDate;

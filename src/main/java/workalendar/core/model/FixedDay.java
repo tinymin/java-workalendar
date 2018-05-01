@@ -1,4 +1,4 @@
-package workalendar.core;
+package workalendar.core.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
