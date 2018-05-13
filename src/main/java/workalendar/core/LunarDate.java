@@ -10,7 +10,7 @@ package workalendar.core;
 
 import java.time.LocalDate;
 
-public class LunarDate {
+class LunarDate {
     private static int[] lunar_month_days = {1887, 0x1694, 0x16aa, 0x4ad5,
             0xab6, 0xc4b7, 0x4ae, 0xa56, 0xb52a, 0x1d2a, 0xd54, 0x75aa, 0x156a,
             0x1096d, 0x95c, 0x14ae, 0xaa4d, 0x1a4c, 0x1b2a, 0x8d55, 0xad4,
@@ -156,7 +156,7 @@ public class LunarDate {
 
         int lunarY = index + solar_1_1[0];
         int lunarM = 1;
-        int lunarD = 1;
+        int lunarD;
         offset += 1;
 
         for (int i = 0; i < 13; i++) {
