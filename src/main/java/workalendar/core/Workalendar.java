@@ -91,7 +91,7 @@ abstract class Workalendar {
      */
     public String getHolidayLabel(LocalDate day) {
         Map<LocalDate, String> h = this.holidays(day.getYear()).stream()
-                .collect(toMap(k -> k.getLocalDate(), v -> v.getLabel()));
+                .collect(toMap(k -> k.getDate(), v -> v.getLabel()));
 
         return h.get(day);
     }
@@ -108,7 +108,7 @@ abstract class Workalendar {
 
     public Set<LocalDate> holidaysSet(int year) {
         return this.holidays(year).stream()
-                .map(Day::getLocalDate)
+                .map(Day::getDate)
                 .collect(toCollection(HashSet::new));
     }
 

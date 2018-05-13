@@ -8,6 +8,6 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 public class Day {
-    private LocalDate localDate;
+    private LocalDate date;
     private String label;
 }

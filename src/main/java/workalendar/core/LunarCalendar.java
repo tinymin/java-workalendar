@@ -11,6 +11,6 @@ public class LunarCalendar {
     }
 
     public static LocalDate lunar(int year, int month, int day) {
-        return LunarCalendar.lunar(LocalDate.of(year, month, day));
+        return lunar(LocalDate.of(year, month, day));
     }
 }
