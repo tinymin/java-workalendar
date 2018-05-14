@@ -1,17 +1,22 @@
 package workalendar.core;
 
+import lombok.Data;
 import workalendar.core.model.Day;
+import workalendar.core.model.DayComparator;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static java.time.DayOfWeek.SUNDAY;
 
 /**
  * Calendar including toolsets to compute the Chinese New Year holidays.
  */
-public class ChineseNewYearCalendar extends LunarCalendar{
+@Data
+public class ChineseNewYearCalendar extends WesternCalendar {
     private boolean includeChineseNewYearEve;
     private String chineseNewYearEveLabel;
     // Chinese New Year will be included by default
@@ -64,7 +69,7 @@ public class ChineseNewYearCalendar extends LunarCalendar{
     private List<Day> getChineseNewYear(int year) {
         ArrayList<Day> days = new ArrayList<>();
 
-        LocalDate lunarFirstDay = ChineseNewYearCalendar.lunar(year, 1, 1);
+        LocalDate lunarFirstDay = LunarCalendar.lunar(year, 1, 1);
         // Chinese new year's eve
         if (this.includeChineseNewYearEve)
             days.add(new Day(lunarFirstDay.minusDays(1), this.chineseNewYearEveLabel));
@@ -109,8 +114,8 @@ public class ChineseNewYearCalendar extends LunarCalendar{
     }
 
 
-    public List<Day> getVariableDays(int year) {
-        List<Day> days = this.getVariableDays(year);
+    public SortedSet<Day> getVariableDays(int year) {
+        SortedSet<Day> days = this.getVariableDays(year);
         days.addAll(this.getChineseNewYear(year));
 
         return days;
@@ -121,10 +126,10 @@ public class ChineseNewYearCalendar extends LunarCalendar{
      * Taking a list of existing holidays, yield a list of 'shifted' days if
      * the holiday falls on SUN.
      * @param dates
-     * @return
+     * @return SortedSet<Day>
      */
-    private List<Day> getShiftedHolidays(List<Day> dates) {
-        List<Day> shiftDates = new ArrayList<>();
+    private SortedSet<Day> getShiftedHolidays(SortedSet<Day> dates) {
+        SortedSet<Day> shiftDates = new TreeSet<>(new DayComparator<>());
 
         for (Day date : dates) {
             if (date.getDate().getDayOfWeek() != SUNDAY)
@@ -142,10 +147,10 @@ public class ChineseNewYearCalendar extends LunarCalendar{
      *  falls on SUN.
      *
      * @param year
-     * @return List<Day>
+     * @return SortedSet<Day>
      */
-    public List<Day> getCalendarHolidays(int year) {
-        List<Day> days = this.getCalendarHolidays(year);
+    public SortedSet<Day> getCalendarHolidays(int year) {
+        SortedSet<Day> days = super.getCalendarHolidays(year);
         if (this.shiftSundayHolidays) {
             for (Day dayShifted : getShiftedHolidays(days)) {
                 days.add(dayShifted);

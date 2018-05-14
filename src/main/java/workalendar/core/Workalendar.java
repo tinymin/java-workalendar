@@ -1,7 +1,9 @@
 package workalendar.core;
 
+import workalendar.core.model.DayComparator;
 import workalendar.core.model.Day;
 import workalendar.core.model.FixedDay;
+import workalendar.core.model.FixedDayComparator;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -21,7 +23,7 @@ abstract class Workalendar {
 
     public Workalendar() {
         this.holidays = new HashMap<>();
-        this.FIXED_HOLIDAYS =  new TreeSet<>();
+        this.FIXED_HOLIDAYS =  new TreeSet<>(new FixedDayComparator<>());
         this.WEEKEND_DAYS =  new ArrayList<>();
     }
 
@@ -29,7 +31,7 @@ abstract class Workalendar {
      * Return the fixed days according to the FIXED_HOLIDAYS class property
      */
     public SortedSet<Day> getFixedHolidays(int year) {
-        SortedSet<Day> days =  new TreeSet<>();
+        SortedSet<Day> days =  new TreeSet<>(new DayComparator<>());
 
         for (FixedDay fixedDay: this.FIXED_HOLIDAYS) {
             days.add(fixedDay.toDay(year));

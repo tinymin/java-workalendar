@@ -1,6 +1,7 @@
 package workalendar.core;
 
 import workalendar.core.model.Day;
+import workalendar.core.model.DayComparator;
 import workalendar.core.model.FixedDay;
 import workalendar.util.Easter.EASTER;
 
@@ -48,7 +49,7 @@ public class WesternCalendar extends Workalendar {
      */
     @Override
     public SortedSet<Day> getCalendarHolidays(int year) {
-        SortedSet<Day> days = new TreeSet<>();
+        SortedSet<Day> days = new TreeSet<>(new DayComparator<>());
         days.add(new Day(LocalDate.of(year, 1, 1), "New Year"));
         days.add(new Day(LocalDate.of(year, 12, 25), "Christmas"));
         return days;
