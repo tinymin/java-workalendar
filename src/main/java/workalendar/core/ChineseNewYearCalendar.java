@@ -1,6 +1,5 @@
 package workalendar.core;
 
-import lombok.Data;
 import workalendar.core.model.Day;
 import workalendar.core.model.DayComparator;
 
@@ -15,34 +14,20 @@ import static java.time.DayOfWeek.SUNDAY;
 /**
  * Calendar including toolsets to compute the Chinese New Year holidays.
  */
-@Data
-public class ChineseNewYearCalendar extends WesternCalendar {
-    private boolean includeChineseNewYearEve;
-    private String chineseNewYearEveLabel;
+public interface ChineseNewYearCalendar extends Workalendar {
+    boolean includeChineseNewYearEve = false;
+    String chineseNewYearEveLabel = "Chinese New Year's eve";
     // Chinese New Year will be included by default
-    private boolean includeChineseNewYear;
-    private String chineseNewYearLabel;
+    boolean includeChineseNewYear = true;
+    String chineseNewYearLabel = "Chinese New Year";
     // Some countries include the 2nd lunar day as a holiday
-    private boolean includeChineseSecondDay;
-    private String chineseSecondDayLabel;
-    private boolean includeChineseThirdDay;
-    private String chineseThirdDayLabel;
-    private boolean shiftSundayHolidays;
+    boolean includeChineseSecondDay = false;
+    String chineseSecondDayLabel = "Chinese New Year (2nd day)";
+    boolean includeChineseThirdDay = false;
+    String chineseThirdDayLabel = "Chinese New Year (3rd day)";
+    boolean shiftSundayHolidays = false;
     // Some calendars roll a starting Sunday CNY to Sat
-    private boolean shiftStartCnySunday;
-
-    public ChineseNewYearCalendar() {
-        includeChineseNewYearEve = false;
-        chineseNewYearEveLabel = "Chinese New Year's eve";
-        includeChineseNewYear = true;
-        chineseNewYearLabel = "Chinese New Year";
-        includeChineseSecondDay = false;
-        chineseSecondDayLabel = "Chinese New Year (2nd day)";
-        includeChineseThirdDay = false;
-        chineseThirdDayLabel = "Chinese New Year (3rd day)";
-        shiftSundayHolidays = false;
-        shiftStartCnySunday = false;
-    }
+    boolean shiftStartCnySunday = false;
 
 
     /**
@@ -66,7 +51,7 @@ public class ChineseNewYearCalendar extends WesternCalendar {
      * @param year
      * @return LocalDate
      */
-    private List<Day> getChineseNewYear(int year) {
+    default List<Day> getChineseNewYear(int year) {
         ArrayList<Day> days = new ArrayList<>();
 
         LocalDate lunarFirstDay = LunarCalendar.lunar(year, 1, 1);
@@ -114,8 +99,8 @@ public class ChineseNewYearCalendar extends WesternCalendar {
     }
 
 
-    public SortedSet<Day> getVariableDays(int year) {
-        SortedSet<Day> days = this.getVariableDays(year);
+    default SortedSet<Day> getVariableDays(int year) {
+        SortedSet<Day> days = Workalendar.super.getVariableDays(year);
         days.addAll(this.getChineseNewYear(year));
 
         return days;
@@ -128,7 +113,7 @@ public class ChineseNewYearCalendar extends WesternCalendar {
      * @param dates
      * @return SortedSet<Day>
      */
-    private SortedSet<Day> getShiftedHolidays(SortedSet<Day> dates) {
+    default SortedSet<Day> getShiftedHolidays(SortedSet<Day> dates) {
         SortedSet<Day> shiftDates = new TreeSet<>(new DayComparator<>());
 
         for (Day date : dates) {
@@ -149,8 +134,8 @@ public class ChineseNewYearCalendar extends WesternCalendar {
      * @param year
      * @return SortedSet<Day>
      */
-    public SortedSet<Day> getCalendarHolidays(int year) {
-        SortedSet<Day> days = super.getCalendarHolidays(year);
+    default SortedSet<Day> getCalendarHolidays(int year) {
+        SortedSet<Day> days = Workalendar.super.getCalendarHolidays(year);
         if (this.shiftSundayHolidays) {
             for (Day dayShifted : getShiftedHolidays(days)) {
                 days.add(dayShifted);

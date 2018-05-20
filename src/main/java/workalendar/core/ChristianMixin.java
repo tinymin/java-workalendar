@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.SortedSet;
 
 @Setter
-public class ChristianMixin extends Workalendar {
+public class ChristianMixin implements Workalendar {
     private EASTER easterMethod;  // to be assigned in the inherited mixin;
     private boolean includeEpiphany;
     private boolean includeCleanMonday;

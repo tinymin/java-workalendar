@@ -10,10 +10,10 @@ public class DayComparator<T> implements Comparator<T> {
         LocalDate date2 = ((Day)o2).getDate();
 
         if (date1.isBefore(date2))
-            return 1;
+            return -1;
         else if(date1.isEqual(date2))
             return 0;
 
-        return -1;
+        return 1;
     }
 }
