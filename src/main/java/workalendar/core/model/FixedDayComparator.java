@@ -7,13 +7,15 @@ public class FixedDayComparator<T> implements Comparator<T> {
     @Override
     public int compare(T o1, T o2) {
 
-        // FIXME: 2018-05-14 Compare statement is not collect. Must be modify.
-        int date1 = ((FixedDay)o1).getMonth();
-        int date2 = ((FixedDay)o2).getMonth();
+        FixedDay day1 = (FixedDay)o1;
+        FixedDay day2 = (FixedDay)o2;
 
-        if (date1 < date2)
+        LocalDate date1 = LocalDate.of(1900, day1.getMonth(), day1.getDay());
+        LocalDate date2 = LocalDate.of(1900, day2.getMonth(), day2.getDay());
+
+        if (date1.isBefore(date2))
             return 1;
-        else if(date1 == date2)
+        else if(date1.isEqual(date2))
             return 0;
 
         return -1;

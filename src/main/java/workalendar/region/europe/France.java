@@ -11,7 +11,7 @@ import java.util.SortedSet;
 /**
  * France calendar
  */
-public class France extends WesternCalendar {
+public class France implements WesternCalendar {
     public France() {
         super();
     }
@@ -31,7 +31,7 @@ public class France extends WesternCalendar {
 
     @Override
     public SortedSet<Day> getCalendarHolidays(int year) {
-        SortedSet<Day> days = super.getCalendarHolidays(year);
+        SortedSet<Day> days = WesternCalendar.super.getCalendarHolidays(year);
 
         days.add(new Day(LocalDate.of(year, 5, 1), "")); // Labour day
         days.add(new Day(LocalDate.of(year, 5, 8), "")); // 1939-45 victory

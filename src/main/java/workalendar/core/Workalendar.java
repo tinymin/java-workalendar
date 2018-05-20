@@ -14,23 +14,16 @@ import static java.time.LocalDate.now;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 
-abstract class Workalendar {
-    private final Map<Integer, SortedSet<Day>> holidays;
+interface Workalendar {
+    Map<Integer, SortedSet<Day>> holidays = new HashMap<>();
 
-    protected SortedSet<FixedDay> FIXED_HOLIDAYS;
-    protected List<DayOfWeek> WEEKEND_DAYS;
-
-
-    public Workalendar() {
-        this.holidays = new HashMap<>();
-        this.FIXED_HOLIDAYS =  new TreeSet<>(new FixedDayComparator<>());
-        this.WEEKEND_DAYS =  new ArrayList<>();
-    }
+    SortedSet<FixedDay> FIXED_HOLIDAYS = new TreeSet<>(new FixedDayComparator<>());
+    public List<DayOfWeek> WEEKEND_DAYS = new ArrayList<>();
 
     /**
      * Return the fixed days according to the FIXED_HOLIDAYS class property
      */
-    public SortedSet<Day> getFixedHolidays(int year) {
+    default SortedSet<Day> getFixedHolidays(int year) {
         SortedSet<Day> days =  new TreeSet<>(new DayComparator<>());
 
         for (FixedDay fixedDay: this.FIXED_HOLIDAYS) {
@@ -40,7 +33,9 @@ abstract class Workalendar {
         return days;
     }
 
-    public abstract SortedSet<Day> getVariableDays(int year);
+    default SortedSet<Day> getVariableDays(int year) {
+        return new TreeSet<>(new DayComparator<>());
+    }
 
     /**
      * Get calendar holidays.
@@ -50,7 +45,7 @@ abstract class Workalendar {
      * @param year
      * @return Set<LocalDate>
      */
-    public SortedSet<Day> getCalendarHolidays(int year) {
+    default SortedSet<Day> getCalendarHolidays(int year) {
         SortedSet<Day> hd = this.getFixedHolidays(year);
         hd.addAll(this.getVariableDays(year));
         return hd;
@@ -62,7 +57,7 @@ abstract class Workalendar {
      *
      * @return Set<LocalDate>
      */
-    public SortedSet<Day> holidays() {
+    default SortedSet<Day> holidays() {
         return holidays(now().getYear());
     }
 
@@ -73,7 +68,7 @@ abstract class Workalendar {
      * @param year
      * @return Set<LocalDate>
      */
-    public SortedSet<Day> holidays(int year) {
+    default SortedSet<Day> holidays(int year) {
         if (this.holidays.containsKey(year)) {
             return holidays.get(year);
         }
@@ -91,7 +86,7 @@ abstract class Workalendar {
      * @param day
      * @return String Holiday label
      */
-    public String getHolidayLabel(LocalDate day) {
+    default String getHolidayLabel(LocalDate day) {
         Map<LocalDate, String> h = this.holidays(day.getYear()).stream()
                 .collect(toMap(k -> k.getDate(), v -> v.getLabel()));
 
@@ -104,14 +99,15 @@ abstract class Workalendar {
      *
      * @return Set<LocalDate>
      */
-    public Set<LocalDate> holidaysSet() {
+    default SortedSet<LocalDate> holidaysSet() {
         return holidaysSet(now().getYear());
     }
 
-    public Set<LocalDate> holidaysSet(int year) {
+    default SortedSet<LocalDate> holidaysSet(int year) {
         return this.holidays(year).stream()
                 .map(Day::getDate)
-                .collect(toCollection(HashSet::new));
+                .sorted(Comparator.naturalOrder())
+                .collect(toCollection(TreeSet::new));
     }
 
 
@@ -121,7 +117,7 @@ abstract class Workalendar {
      *
      * @return List<DayOfWeek>
      */
-    public List<DayOfWeek> getWeekendDays() {
+    default List<DayOfWeek> getWeekendDays() {
         if (false == this.WEEKEND_DAYS.isEmpty())
             return this.WEEKEND_DAYS;
 
@@ -147,11 +143,11 @@ abstract class Workalendar {
      * @param day
      * @return boolean
      */
-    public boolean isWorkingDay(LocalDate day) {
+    default boolean isWorkingDay(LocalDate day) {
         return isWorkingDay(day, null, null);
     }
 
-    public boolean isWorkingDay(LocalDate day, List extraWorkingDays, List extraHolidays) {
+    default boolean isWorkingDay(LocalDate day, List extraWorkingDays, List extraHolidays) {
         // Extra lists exceptions
         if (null != extraWorkingDays && extraWorkingDays.contains(day))
             return true;
@@ -175,7 +171,7 @@ abstract class Workalendar {
      * @param extraHolidays
      * @return boolean
      */
-    private boolean isHoliday(LocalDate day, List extraHolidays) {
+    default boolean isHoliday(LocalDate day, List extraHolidays) {
         if (null != extraHolidays && extraHolidays.contains(day))
             return true;
 
@@ -202,11 +198,11 @@ abstract class Workalendar {
      * @param day
      * @param delta
      */
-    public LocalDate addWorkingDays(LocalDate day, int delta) {
+    default LocalDate addWorkingDays(LocalDate day, int delta) {
         return addWorkingDays(day, delta, null, null);
     }
 
-    public LocalDate addWorkingDays(LocalDate day, int delta, List extraWorkingDays, List extraHolidays) {
+    default LocalDate addWorkingDays(LocalDate day, int delta, List extraWorkingDays, List extraHolidays) {
         int days = 0;
         LocalDate tempDay = day;
         int dayAdded = delta >= 0 ? 1 : -1;
@@ -242,11 +238,11 @@ abstract class Workalendar {
      * @param delta
      * @return LocalDate
      */
-    public LocalDate subWorkingDays(LocalDate day, int delta) {
+    default LocalDate subWorkingDays(LocalDate day, int delta) {
         return subWorkingDays(day, delta, null, null);
     }
 
-    public LocalDate subWorkingDays(LocalDate day, int delta, List extraWorkingDays, List extraHolidays) {
+    default LocalDate subWorkingDays(LocalDate day, int delta, List extraWorkingDays, List extraHolidays) {
         delta = Math.abs(delta);
         return addWorkingDays(day, delta*-1, extraWorkingDays, extraHolidays);
     }
@@ -257,7 +253,7 @@ abstract class Workalendar {
      * @param day
      * @return LocalDate
      */
-    public LocalDate findFollowingWorkingDay(LocalDate day) {
+    default LocalDate findFollowingWorkingDay(LocalDate day) {
         while(this.getWeekendDays().contains(day.getDayOfWeek())) {
             day = day.plusDays(1);
         }
@@ -281,15 +277,15 @@ abstract class Workalendar {
      * @param dayOfWeek
      * @return LocalDate
      */
-    public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
+    static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
         return getNthWeekdayInMonth(year, month, dayOfWeek, 1, null);
     }
 
-    public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n) {
+    static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n) {
         return getNthWeekdayInMonth(year, month, dayOfWeek, n, null);
     }
 
-    public static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n, LocalDate start) {
+    static LocalDate getNthWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek, int n, LocalDate start) {
         LocalDate day = null;
 
         if(day != null)
@@ -325,7 +321,7 @@ abstract class Workalendar {
      * @param year
      * @param month
      */
-    public static LocalDate getLastWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
+    static LocalDate getLastWeekdayInMonth(int year, int month, DayOfWeek dayOfWeek) {
         // Get last day of month
         LocalDate day = LocalDate.of(year, month, 1).with(TemporalAdjusters.lastDayOfMonth());
 
@@ -356,7 +352,7 @@ abstract class Workalendar {
      * @param dayOfWeek
      * @return LocalDate
      */
-    public static LocalDate get_first_weekday_after(LocalDate day, DayOfWeek dayOfWeek) {
+    static LocalDate get_first_weekday_after(LocalDate day, DayOfWeek dayOfWeek) {
         int dayDelta = (dayOfWeek.ordinal() - day.getDayOfWeek().ordinal()) % 7;
         return day.plusDays(dayDelta);
     }
