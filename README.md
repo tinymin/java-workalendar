@@ -9,4 +9,4 @@ Original Project
 This proejct purpose convert from Python `Worklendar` to Java `java-worklendar`. 
 You can get more information below link :
 
-https://github.com/peopledoc/workalendar/blob/master/
+https://github.com/peopledoc/workalendar/
