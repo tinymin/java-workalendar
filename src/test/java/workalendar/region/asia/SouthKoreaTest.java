@@ -5,7 +5,7 @@ import org.junit.Test;
 import java.time.LocalDate;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static junit.framework.Assert.assertTrue;
 
 public class SouthKoreaTest {
     @Test

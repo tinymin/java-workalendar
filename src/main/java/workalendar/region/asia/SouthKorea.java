@@ -51,4 +51,10 @@ public class SouthKorea implements WesternCalendar, ChineseNewYearCalendar {
 
         return days;
     }
+
+
+    @Override
+    public boolean isShiftNewYearsDay() {
+        return true;
+    }
 }

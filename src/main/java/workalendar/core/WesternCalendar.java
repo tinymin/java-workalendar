@@ -14,17 +14,22 @@ import java.util.SortedSet;
  */
 public interface WesternCalendar extends Workalendar {
     EASTER EASTER_METHOD = EASTER.WESTERN;
-    boolean shiftNewYearsDay = false;
 
     @Override
     default SortedSet<Day> getVariableDays(int year) {
         SortedSet<Day> days = Workalendar.super.getVariableDays(year);
         LocalDate newYear = LocalDate.of(year, 1, 1);
-        if (this.shiftNewYearsDay) {
+        if (this.isShiftNewYearsDay()) {
             if ( this.getWeekendDays().contains(newYear.getDayOfWeek()) ) {
                 days.add(new Day(this.findFollowingWorkingDay(newYear),"New Year shift"));
             }
         }
         return days;
+    }
+
+
+    @Override
+    default boolean isShiftNewYearsDay() {
+        return false;
     }
 }

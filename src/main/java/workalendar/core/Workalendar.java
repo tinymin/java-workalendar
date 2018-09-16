@@ -356,4 +356,9 @@ interface Workalendar {
         int dayDelta = (dayOfWeek.ordinal() - day.getDayOfWeek().ordinal()) % 7;
         return day.plusDays(dayDelta);
     }
+
+
+    default boolean isShiftNewYearsDay() {
+        return false;
+    }
 }
